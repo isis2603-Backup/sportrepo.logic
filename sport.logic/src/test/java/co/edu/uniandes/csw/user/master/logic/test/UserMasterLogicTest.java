@@ -3,17 +3,20 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package co.uniandes.edu.csw.api.user.master.persistence.test;
+package co.edu.uniandes.csw.user.master.logic.test;
 
 import co.edu.uniandes.csw.address.logic.dto.AddressDTO;
 import co.edu.uniandes.csw.address.persistence.converter.AddressConverter;
-import co.edu.uniandes.csw.address.persistence.converter._AddressConverter;
 import co.edu.uniandes.csw.address.persistence.entity.AddressEntity;
 import co.edu.uniandes.csw.sport.logic.dto.SportDTO;
 import co.edu.uniandes.csw.sport.persistence.converter.SportConverter;
 import co.edu.uniandes.csw.sport.persistence.entity.SportEntity;
 import co.edu.uniandes.csw.user.logic.dto.UserDTO;
+import co.edu.uniandes.csw.user.master.logic.api.IUserMasterLogicService;
+import co.edu.uniandes.csw.user.master.logic.api._IUserMasterLogicService;
 import co.edu.uniandes.csw.user.master.logic.dto.UserMasterDTO;
+import co.edu.uniandes.csw.user.master.logic.ejb.UserMasterLogicService;
+import co.edu.uniandes.csw.user.master.logic.rules.test.UserMasterLogicRules;
 import co.edu.uniandes.csw.user.master.persistence.*;
 import co.edu.uniandes.csw.user.master.persistence.api.IUserMasterPersistence;
 import co.edu.uniandes.csw.user.master.persistence.entity.UserAddressEntity;
@@ -21,7 +24,6 @@ import co.edu.uniandes.csw.user.master.persistence.entity.UserSportEntity;
 import co.edu.uniandes.csw.user.persistence.UserPersistence;
 import co.edu.uniandes.csw.user.persistence.converter.UserConverter;
 import co.edu.uniandes.csw.user.persistence.entity.UserEntity;
-import co.uniandes.edu.csw.api.user.master.persistence.rules.test.UserMasterPersistenceRules;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
@@ -33,7 +35,6 @@ import org.jboss.arquillian.container.test.api.Deployment;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -50,12 +51,13 @@ import uk.co.jemos.podam.api.PodamFactoryImpl;
  * @author Jj.alarcon10
  */
 @RunWith(Arquillian.class)
-public class UserMasterPersistenceTest {
+public class UserMasterLogicTest {
 
     public static final String DEPLOY = "Prueba";
     //Regla implementada para manejar múltiples escenarios de datos
     @Rule
-    public UserMasterPersistenceRules rule = new UserMasterPersistenceRules("dataSample");
+    public UserMasterLogicRules rule = new UserMasterLogicRules("dataSample");
+
 //Almacena el dato actual de la regla.
     private UserDTO dataSample;
 
@@ -79,13 +81,15 @@ public class UserMasterPersistenceTest {
                 .addPackage(UserSportEntity.class.getPackage())
                 .addPackage(AddressEntity.class.getPackage())
                 .addPackage(SportEntity.class.getPackage())
+                .addPackage(UserMasterLogicService.class.getPackage())
+                .addPackage(IUserMasterLogicService.class.getPackage())
                 //Finalmente se añaden los archivos persistance.xml y beans.xml para laa Unidad de peristencia y CDI del paquete mínimo
                 .addAsResource("META-INF/persistence.xml", "META-INF/persistence.xml")
                 .addAsWebInfResource("META-INF/beans.xml", "beans.xml");
     }
     //Atributo que contiene la referencia al componente que se va a probar (la persistencia)
     @Inject
-    private IUserMasterPersistence testPersistence;
+    private IUserMasterLogicService testLogic;
 
     //Atributo que obtiene el persistance unit especificado en persistance.xml
     @PersistenceContext(name = "sproyectoPU")
@@ -124,6 +128,147 @@ public class UserMasterPersistenceTest {
         }
 
         return tmp;
+    }
+
+    @Test
+    public void createMasterUserCompositeTest() {
+       System.err.println("--> " + dataSample);
+        System.err.println("--> delete");
+        //BORRO DATOS BD
+        System.err.println("--> load");
+        ArrayList<AddressDTO> addressDetail = (ArrayList) AddressConverter.entity2PersistenceDTOList(generateAddressDeatail(5)); 
+        ArrayList<SportDTO> sportDetail = (ArrayList)SportConverter.entity2PersistenceDTOList(generateSportDeatail(5));
+
+        UserMasterDTO master = new UserMasterDTO();
+
+        master.setCreateAddress(addressDetail);
+        master.setCreateSport(sportDetail);
+        master.setUserEntity(dataSample);
+
+        System.err.println("--> Begin");
+
+        testLogic.createMasterUser(master);
+
+        System.err.println("--> Validate");
+        long addressct = 0;
+        Query addressq = em.createQuery("select u from UserAddressEntity u");
+        List<UserAddressEntity> addressResult = addressq.getResultList();
+        for (UserAddressEntity userAddressEntity : addressResult) {
+            for (AddressDTO addressDet : addressDetail) {
+                if (addressDet.getId() == userAddressEntity.getAddressId()) {
+                    addressct++;
+                }
+            }
+        }
+
+        long sportct = 0;
+        Query sportq = em.createQuery("select u from UserSporttEntity u");
+        List<UserSportEntity> sportResult = sportq.getResultList();
+        for (UserSportEntity userSportEntity : sportResult) {
+            for (SportDTO sportDet : sportDetail) {
+                if (sportDet.getId() == userSportEntity.getSportId()) {
+                    sportct++;
+                }
+            }
+        }
+        
+        
+        
+        if(addressct != addressDetail.size()){
+            fail();
+        }
+        if(sportct != sportDetail.size()){
+            fail();
+        }
+
+    }
+
+    @Test
+    public void createMasterUserSharedTest() {
+        System.err.println("--> " + dataSample);
+        System.err.println("--> delete");
+        //BORRO DATOS BD
+        System.err.println("--> load");
+        ArrayList<AddressDTO> addressDetail = new ArrayList<AddressDTO>(); //Detalles cargados en bases de datos.
+        ArrayList<SportDTO> sportDetail = new ArrayList<SportDTO>();
+
+        UserMasterDTO master = new UserMasterDTO();
+
+        master.setCreateAddress(addressDetail);
+        master.setCreateSport(sportDetail);
+        master.setUserEntity(dataSample);
+
+        System.err.println("--> Begin");
+
+        testLogic.createMasterUser(master);
+
+        System.err.println("--> Validate");
+        long addressct = 0;
+        Query addressq = em.createQuery("select u from UserAddressEntity u");
+        List<UserAddressEntity> addressResult = addressq.getResultList();
+        for (UserAddressEntity userAddressEntity : addressResult) {
+            for (AddressDTO addressDet : addressDetail) {
+                if (addressDet.getId() == userAddressEntity.getAddressId()) {
+                    addressct++;
+                }
+            }
+        }
+
+        long sportct = 0;
+        Query sportq = em.createQuery("select u from UserSporttEntity u");
+        List<UserSportEntity> sportResult = sportq.getResultList();
+        for (UserSportEntity userSportEntity : sportResult) {
+            for (SportDTO sportDet : sportDetail) {
+                if (sportDet.getId() == userSportEntity.getSportId()) {
+                    sportct++;
+                }
+            }
+        }
+        
+        
+        
+        if(addressct != addressDetail.size()){
+            fail();
+        }
+        if(sportct != sportDetail.size()){
+            fail();
+        }
+    }
+
+    @Test
+    public void updateMasterUserCompositeTest() {
+        System.err.println("--> " + dataSample);
+        System.err.println("--> delete");
+        //BORRO DATOS BD
+        System.err.println("--> load");
+
+    }
+
+    @Test
+    public void updateMasterUserSharedTest() {
+        System.err.println("--> " + dataSample);
+        System.err.println("--> delete");
+        //BORRO DATOS BD
+        System.err.println("--> load");
+
+    }
+
+    @Test
+    public void deleteMasterUserTest() {
+        System.err.println("--> " + dataSample);
+        System.err.println("--> delete");
+        //BORRO DATOS BD
+        System.err.println("--> load");
+
+    }
+
+    @Test
+    public void getMasterUserTest() {
+        System.err.println("--> " + dataSample);
+        System.err.println("--> delete");
+        //BORRO DATOS BD
+        System.err.println("--> load");
+
     }
 /*
     @Test
@@ -245,7 +390,7 @@ public class UserMasterPersistenceTest {
         }
 
     }
-*/
+
     @Test
     public void createUserAdressSharedTest() {
         try {
@@ -517,4 +662,5 @@ public class UserMasterPersistenceTest {
             fail();
         }
     }
+    */
 }
