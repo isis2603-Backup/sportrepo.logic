@@ -21,6 +21,7 @@ import co.edu.uniandes.csw.user.master.persistence.*;
 import co.edu.uniandes.csw.user.master.persistence.api.IUserMasterPersistence;
 import co.edu.uniandes.csw.user.master.persistence.entity.UserAddressEntity;
 import co.edu.uniandes.csw.user.master.persistence.entity.UserSportEntity;
+import co.edu.uniandes.csw.user.master.utils.InitializeDataUserMaster;
 import co.edu.uniandes.csw.user.persistence.UserPersistence;
 import co.edu.uniandes.csw.user.persistence.converter.UserConverter;
 import co.edu.uniandes.csw.user.persistence.entity.UserEntity;
@@ -85,7 +86,7 @@ public class UserMasterLogicTest {
                 .addPackage(IUserMasterLogicService.class.getPackage())
                 //Finalmente se añaden los archivos persistance.xml y beans.xml para laa Unidad de peristencia y CDI del paquete mínimo
                 .addAsResource("META-INF/persistence.xml", "META-INF/persistence.xml")
-                .addAsWebInfResource("META-INF/beans.xml", "beans.xml");
+                .addAsWebInfResource("META-INF/beans.xml", "META-INF/beans.xml");
     }
     //Atributo que contiene la referencia al componente que se va a probar (la persistencia)
     @Inject
@@ -129,6 +130,39 @@ public class UserMasterLogicTest {
 
         return tmp;
     }
+    
+    
+//    public UserAddressEntity generateAddress(int number, UserDTO master){
+//            
+//          UserMasterDTO userMasterDTO = new UserMasterDTO();
+//          UserAddressEntity userAddress= new UserAddressEntity();
+//            try{
+//                List<AddressDTO> addresses = new ArrayList<AddressDTO>();
+//                PodamFactory factory = new PodamFactoryImpl();
+//
+//                userMasterDTO.setUserEntity(master);
+//            
+//            
+//                for(int i=0; i < number;i++ ){
+//            
+//                    AddressDTO detail = factory.manufacturePojo(AddressDTO.class);
+//                    userAddress.setUserEntity(UserConverter.persistenceDTO2Entity(master));
+//                    userAddress.setAddressEntity(AddressConverter.persistenceDTO2Entity(detail));
+//                    em.persist(userAddress);
+//                    //userMasterPersistence.createUserAddress(userAddress);
+//                    addresses.add(detail);
+//                    //data.add(userAddress);
+//                }
+//                userMasterDTO.setListAddress(addresses);        
+//            
+//                return userAddress;
+//  
+//            
+//            }catch(Exception e){
+//                e.printStackTrace();
+//            }   
+//            return  userAddress;
+//        }
 
     @Test
     public void createMasterUserCompositeTest() {
@@ -239,8 +273,23 @@ public class UserMasterLogicTest {
     public void updateMasterUserCompositeTest() {
         System.err.println("--> " + dataSample);
         System.err.println("--> delete");
+        InitializeDataUserMaster.deleteBd();
         //BORRO DATOS BD
         System.err.println("--> load");
+        
+        //Ejemplo para insertar datos user y Address 
+        UserDTO user = new UserDTO();
+        List <AddressDTO> addresses = new ArrayList<AddressDTO>();
+        user.setId((long)8);
+        user.setFirstName("Jhonatan");
+        user.setBirthDate("2014-04-04");
+        addresses = InitializeDataUserMaster.insertDataAddress(5,user);
+        //Ejemplo para insertar datos user y Sports
+        user.setId((long)9);
+        List <SportDTO> sports = new ArrayList<SportDTO>();
+        sports = InitializeDataUserMaster.insertDataSport(5,user);
+        //Borrar BD
+        InitializeDataUserMaster.deleteBd();
 
     }
 
@@ -663,4 +712,8 @@ public class UserMasterLogicTest {
         }
     }
     */
+
+    private UserMasterDTO InitializeDataUserMaster(int i, UserDTO user) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }

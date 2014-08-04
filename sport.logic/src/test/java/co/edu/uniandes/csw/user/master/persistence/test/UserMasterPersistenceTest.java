@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package co.uniandes.edu.csw.api.user.master.persistence.test;
+package co.edu.uniandes.csw.user.master.persistence.test;
 
 import co.edu.uniandes.csw.address.logic.dto.AddressDTO;
 import co.edu.uniandes.csw.address.persistence.converter.AddressConverter;
@@ -21,7 +21,7 @@ import co.edu.uniandes.csw.user.master.persistence.entity.UserSportEntity;
 import co.edu.uniandes.csw.user.persistence.UserPersistence;
 import co.edu.uniandes.csw.user.persistence.converter.UserConverter;
 import co.edu.uniandes.csw.user.persistence.entity.UserEntity;
-import co.uniandes.edu.csw.api.user.master.persistence.rules.test.UserMasterPersistenceRules;
+import co.edu.uniandes.csw.user.master.persistence.rules.test.UserMasterPersistenceRules;
 import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;

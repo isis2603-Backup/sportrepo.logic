@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 
-package co.uniandes.edu.csw.api.user.master.persistence.rules.test;
+package co.edu.uniandes.csw.user.master.persistence.rules.test;
 
 import co.edu.uniandes.csw.user.logic.dto.UserDTO;
 import java.lang.reflect.Field;
